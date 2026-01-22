@@ -1,4 +1,5 @@
 #pragma once
+#include "Random/Algorithm/DrunkardWalk/DrunkardWalk.h"
 
 class InputMgr;
 class TextureMgr;
@@ -23,6 +24,7 @@ public:
 	TextureMgr* TextureMgr;
 	DebugMgr* DebugMgr;
 	Logger* Console;
+	RandomMgr* RandomMgr;
 };
 
 extern Globals gData;

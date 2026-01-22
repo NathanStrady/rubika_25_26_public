@@ -77,6 +77,24 @@ bool TextureMgr::LoadTexture(const std::filesystem::path& path)
 	return true;
 }
 
+bool TextureMgr::LoadTexture(const std::filesystem::path& path, sf::Texture& texture)
+{
+	auto p = Textures.emplace(std::piecewise_construct,
+				 std::forward_as_tuple(path.string()),  
+				 std::forward_as_tuple());
+	
+	if (!p.second)
+	{
+		std::cerr << "LoadTexture: Internal error. Cannot emplace in map" << '\n';
+		return false;
+	}
+
+	p.first->second.Texture = texture;
+	p.first->second.AddRef();
+
+	return true;
+}
+
 const TextureData& TextureMgr::GetTextureData(const std::string& name) const
 {
 	assert(Textures.find(name) != Textures.end());

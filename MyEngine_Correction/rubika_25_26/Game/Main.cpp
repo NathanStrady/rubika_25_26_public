@@ -16,7 +16,10 @@
 #include "Imgui/imgui-SFML.h"
 #endif
 
+#include <iostream>
 #include <Engine/Profiler.h>
+
+#include "Engine/Random/RandomMgr.h"
 
 Entity* CreateEntity()
 {
@@ -77,11 +80,10 @@ int main()
     {
         return -4;
     }
-
+    
     Entity* entity = CreateEntity();
-
     gData.GameMgr->AddEntity(entity);
-
+    
     sf::Clock clock;
     clock.restart();
 
