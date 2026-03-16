@@ -4,7 +4,7 @@
 #include <Engine/Render/Ressource/TextureMgr.h>
 #include <Engine/Debug/DebugMgr.h>
 #include <Engine/Console/LogConsole.h>
-#include "Random/RandomMgr.h"
+#include <Engine/Random/RandomMgr.h>
 
 Globals gData;
 
@@ -56,5 +56,4 @@ void Globals::Destroy()
 
 	delete RandomMgr;
 	RandomMgr = nullptr;
-
 }
