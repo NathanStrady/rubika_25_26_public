@@ -130,7 +130,7 @@ int main()
             },
             TaskMgr::ePhase::Worker);
     }
-
+    
     while (window.isOpen() && !gData.ExipApp)
     {
         PROFILER_EVENT_BEGIN(PROFILER_COLOR_BLACK, "Frame %llu", gData.FrameCount);
@@ -157,27 +157,31 @@ int main()
             }
             PROFILER_EVENT_END();
             
-            gData.TaskMgr->StartPhase(TaskMgr::ePhase::Update);
-            PopulateUpdate();  
-            gData.TaskMgr->WaitPhase();
+
 
             PROFILER_EVENT_BEGIN(PROFILER_COLOR_RED, "Update");
             {
-
+      
+                gData.TaskMgr->StartPhase(TaskMgr::ePhase::Update);
+                PopulateUpdate();
 #ifdef _USE_IMGUI
                 ImGui::SFML::Update(window, imGuiTime);
 #endif
                 gData.GameMgr->Update(fDeltaTimeS);
+                
+                
+                gData.TaskMgr->WaitPhase();
             }
             PROFILER_EVENT_END();
 
-            gData.TaskMgr->StartPhase(TaskMgr::ePhase::Draw);
-            PopulateDraw();  
-            gData.TaskMgr->WaitPhase();    
+ 
+
             
             PROFILER_EVENT_BEGIN(PROFILER_COLOR_GREEN, "Draw");
             {
        
+                gData.TaskMgr->StartPhase(TaskMgr::ePhase::Draw);
+                PopulateDraw();
                 PROFILER_EVENT_BEGIN(PROFILER_COLOR_BROWN, "Debug Draw");
                 gData.DebugMgr->Draw();
                 PROFILER_EVENT_END();
@@ -196,7 +200,8 @@ int main()
                 PROFILER_EVENT_BEGIN(PROFILER_COLOR_CYAN, "Window Display");
                 window.display();
                 PROFILER_EVENT_END();
-
+                
+                gData.TaskMgr->WaitPhase();    
             }
 
             

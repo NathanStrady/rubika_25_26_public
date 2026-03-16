@@ -24,12 +24,9 @@ public:
     void RegisterTask(std::function<void()> task, ePhase phase);
     void StartPhase(ePhase phase);
     void WaitPhase();
-
     void WorkerLoop();
     void SyncLoop();
 
-    void UpdateThreadUpdate();
-    void DrawUpdateThread();
 
 private:
     std::atomic<ePhase> CurrentPhase;

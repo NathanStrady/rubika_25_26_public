@@ -130,63 +130,43 @@ void TaskMgr::SyncLoop()
 
         if (gData.ExipApp) return;
 
+        std::function<void()> task;
         switch (CurrentPhase)
         {
-            case ePhase::Update: 
-                UpdateThreadUpdate(); 
+            case ePhase::Update:
+                {
+                    std::unique_lock<std::mutex> queueLock(queueMutex);
+                    if (!updateTaskQueue.empty())
+                    {
+                        task = updateTaskQueue.front();
+                        updateTaskQueue.pop();
+                    }
+                }
                 break;
             case ePhase::Draw:   
-                DrawUpdateThread(); 
+                {
+                    std::unique_lock<std::mutex> queueLock(queueMutex);
+                    if (!drawTaskQueue.empty())
+                    {
+                        task = drawTaskQueue.front();
+                        drawTaskQueue.pop();
+                    }
+                }
                 break;
             default: 
                 break; 
         }
         
-        if (syncActiveTasks == 0)
+        if (task)
         {
-            endSyncCv.notify_all();
+            task();
+            --syncActiveTasks;
+            
+            if (syncActiveTasks == 0)
+            {
+                endSyncCv.notify_all();
+            }
         }
-    }
-}
-
-
-
-void TaskMgr::UpdateThreadUpdate()
-{
-    std::function<void()> task;
-    {
-        std::unique_lock<std::mutex> queueLock(queueMutex);
-        if (!updateTaskQueue.empty())
-        {
-            task = updateTaskQueue.front();
-            updateTaskQueue.pop();
-        }
-    }
-    if (task)
-    {
-        task();
-        --syncActiveTasks;
-    }
-
-}
-
-void TaskMgr::DrawUpdateThread()
-{
-    
-    std::function<void()> task;
-    {
-        std::unique_lock<std::mutex> queueLock(queueMutex);
-        if (!drawTaskQueue.empty())
-        {
-            task = drawTaskQueue.front();
-            drawTaskQueue.pop();
-        }
-    }
-    
-    if (task)
-    {
-        task();
-        --syncActiveTasks;
     }
 }
 
