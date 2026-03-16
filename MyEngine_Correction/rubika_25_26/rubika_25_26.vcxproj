@@ -256,91 +256,6 @@
     <ClCompile Include="Engine\Gameplay\Entity\Entity.cpp" />
     <ClCompile Include="Engine\Gameplay\GameMgr.cpp" />
     <ClCompile Include="Engine\Globals.cpp" />
-    <ClCompile Include="Engine\Random\Algorithm\CellularAutomata\CellularAutomata.cpp" />
-    <ClCompile Include="Engine\Random\Algorithm\DrunkardWalk\DrunkardWalk.cpp" />
-    <ClCompile Include="Engine\Random\Algorithm\Grid\CellularGrid.cpp">
-      <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <Optimization>Disabled</Optimization>
-      <SupportJustMyCode>true</SupportJustMyCode>
-      <AssemblerOutput>NoListing</AssemblerOutput>
-      <AssemblerListingLocation>x64\Debug\</AssemblerListingLocation>
-      <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
-      <BrowseInformation>false</BrowseInformation>
-      <BrowseInformationFile>x64\Debug\</BrowseInformationFile>
-      <CompileAs>Default</CompileAs>
-      <UseDynamicDebugging>false</UseDynamicDebugging>
-      <ConformanceMode>true</ConformanceMode>
-      <DiagnosticsFormat>Column</DiagnosticsFormat>
-      <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ErrorReporting>Prompt</ErrorReporting>
-      <ExpandAttributedSource>false</ExpandAttributedSource>
-      <ExceptionHandling>Sync</ExceptionHandling>
-      <EnableASAN>false</EnableASAN>
-      <EnableFuzzer>false</EnableFuzzer>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <EnableVectorLength>NotSet</EnableVectorLength>
-      <FloatingPointModel>Precise</FloatingPointModel>
-      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
-      <GenerateModuleDependencies>false</GenerateModuleDependencies>
-      <GenerateSourceDependencies>false</GenerateSourceDependencies>
-      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
-      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <IntrinsicFunctions>false</IntrinsicFunctions>
-      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>Default</LanguageStandard_C>
-      <MinimalRebuild>false</MinimalRebuild>
-      <ModuleDependenciesFile>x64\Debug\</ModuleDependenciesFile>
-      <ModuleOutputFile>x64\Debug\</ModuleOutputFile>
-      <OmitDefaultLibName>false</OmitDefaultLibName>
-      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
-      <ObjectFileName>x64\Debug\</ObjectFileName>
-      <CallingConvention>Cdecl</CallingConvention>
-      <ProgramDataBaseFileName>x64\Debug\vc143.pdb</ProgramDataBaseFileName>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>x64\Debug\rubika_25_26.pch</PrecompiledHeaderOutputFile>
-      <PreprocessToFile>false</PreprocessToFile>
-      <PreprocessKeepComments>false</PreprocessKeepComments>
-      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
-      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
-      <ShowIncludes>false</ShowIncludes>
-      <SourceDependenciesFile>x64\Debug\</SourceDependenciesFile>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <BufferSecurityCheck>true</BufferSecurityCheck>
-      <SmallerTypeCheck>false</SmallerTypeCheck>
-      <SpectreMitigation>false</SpectreMitigation>
-      <StructMemberAlignment>Default</StructMemberAlignment>
-      <TrackerLogDirectory>x64\Debug\rubika_25_26.tlog\</TrackerLogDirectory>
-      <TranslateIncludes>false</TranslateIncludes>
-      <MinimalRebuildFromTracking>true</MinimalRebuildFromTracking>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
-      <UseFullPaths>true</UseFullPaths>
-      <WarningLevel>Level3</WarningLevel>
-      <XMLDocumentationFileName>x64\Debug\</XMLDocumentationFileName>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <IntelJCCErratum>false</IntelJCCErratum>
-      <BuildStlModules>false</BuildStlModules>
-      <TreatAngleIncludeAsExternal>false</TreatAngleIncludeAsExternal>
-      <ExternalWarningLevel>InheritWarningLevel</ExternalWarningLevel>
-      <TreatExternalTemplatesAsInternal>true</TreatExternalTemplatesAsInternal>
-      <DisableAnalyzeExternal>false</DisableAnalyzeExternal>
-      <PreprocessorDefinitions>SFML_STATIC;_DEBUG;_CONSOLE;_USE_IMGUI;USE_PIX;_DEBUG_COMMAND;_UNICODE;UNICODE;</PreprocessorDefinitions>
-      <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>D:\Cours\Projects\Pro\CPP\rubika_25_26_public\MyEngine_Correction\packages\WinPixEventRuntime.1.0.240308001\build\..\Include\WinPixEventRuntime;D:\Cours\Projects\Pro\CPP\rubika_25_26_public\MyEngine_Correction\Dependencies\include\;D:\Cours\Projects\Pro\CPP\rubika_25_26_public\MyEngine_Correction\rubika_25_26\;</AdditionalIncludeDirectories>
-      <DisableSpecificWarnings>4554;4244</DisableSpecificWarnings>
-      <LinkCompiled>true</LinkCompiled>
-    </ClCompile>
-    <ClCompile Include="Engine\Random\Algorithm\Grid\DrunkardGrid.cpp" />
-    <ClCompile Include="Engine\Random\Algorithm\Grid\PerlinGrid.cpp" />
-    <ClCompile Include="Engine\Random\Algorithm\Perlin\Perlin.cpp" />
-    <ClCompile Include="Engine\Random\Instances\RandomInstance.cpp" />
-    <ClCompile Include="Engine\Random\RandomMgr.cpp" />
     <ClCompile Include="Engine\Render\Drawable\IDrawable.cpp" />
     <ClCompile Include="Engine\Render\Drawable\Sprite\Sprite.cpp" />
     <ClCompile Include="Engine\Render\Drawable\StaticShape\StaticRectangle.cpp" />
@@ -359,15 +274,6 @@
     <ClInclude Include="Engine\Gameplay\GameMgr.h" />
     <ClInclude Include="Engine\Globals.h" />
     <ClInclude Include="Engine\Profiler.h" />
-    <ClInclude Include="Engine\Random\Algorithm\CellularAutomata\CellularAutomata.h" />
-    <ClInclude Include="Engine\Random\Algorithm\DrunkardWalk\DrunkardWalk.h" />
-    <ClInclude Include="Engine\Random\Algorithm\Grid\CellularGrid.h" />
-    <ClInclude Include="Engine\Random\Algorithm\Grid\DrunkardGrid.h" />
-    <ClInclude Include="Engine\Random\Algorithm\Grid\Grid.h" />
-    <ClInclude Include="Engine\Random\Algorithm\Grid\PerlinGrid.h" />
-    <ClInclude Include="Engine\Random\Algorithm\Perlin\Perlin.h" />
-    <ClInclude Include="Engine\Random\Instances\RandomInstance.h" />
-    <ClInclude Include="Engine\Random\RandomMgr.h" />
     <ClInclude Include="Engine\Render\Drawable\IDrawable.h" />
     <ClInclude Include="Engine\Render\Drawable\Sprite\Sprite.h" />
     <ClInclude Include="Engine\Render\Drawable\StaticShape\StaticRectangle.h" />
