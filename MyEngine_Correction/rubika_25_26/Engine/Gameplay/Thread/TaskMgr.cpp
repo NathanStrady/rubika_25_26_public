@@ -32,6 +32,15 @@ void TaskMgr::Shut()
             thread.join();
         }
     }
+    
+    syncCv.notify_all();
+    for (auto& thread : syncThreads)
+    {
+        if (thread.joinable())
+        {
+            thread.join();
+        }
+    }
 }
 
 void TaskMgr::RegisterTask(std::function<void()> task, ePhase phase)
