@@ -56,6 +56,7 @@ void TaskMgr::RegisterTask(std::function<void()> task, ePhase phase)
             cv.notify_one();
             break;
         case ePhase::Update:
+            assert(CurrentPhase == ePhase::Update && "Registering Update task outside Update phase");
             {
                 std::unique_lock<std::mutex> queueLock(queueMutex);
                 updateTaskQueue.emplace(task);
@@ -64,6 +65,7 @@ void TaskMgr::RegisterTask(std::function<void()> task, ePhase phase)
             syncCv.notify_one();
             break;
         case ePhase::Draw:
+            assert(CurrentPhase == ePhase::Draw && "Registering Draw task outside Draw phase");
             {
                 std::unique_lock<std::mutex> queueLock(queueMutex);
                 drawTaskQueue.emplace(task);
