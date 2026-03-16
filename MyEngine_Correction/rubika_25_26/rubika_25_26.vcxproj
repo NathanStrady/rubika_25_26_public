@@ -255,6 +255,7 @@
     <ClCompile Include="Engine\Gameplay\Component\Transform\Transform.cpp" />
     <ClCompile Include="Engine\Gameplay\Entity\Entity.cpp" />
     <ClCompile Include="Engine\Gameplay\GameMgr.cpp" />
+    <ClCompile Include="Engine\Gameplay\Thread\TaskMgr.cpp" />
     <ClCompile Include="Engine\Globals.cpp" />
     <ClCompile Include="Engine\Random\CellularAutomata.cpp" />
     <ClCompile Include="Engine\Random\DrunkardWalk.cpp" />
@@ -276,6 +277,7 @@
     <ClInclude Include="Engine\Gameplay\Entity\Entity.h" />
     <ClInclude Include="Engine\Gameplay\Entity\Entity.hxx" />
     <ClInclude Include="Engine\Gameplay\GameMgr.h" />
+    <ClInclude Include="Engine\Gameplay\Thread\TaskMgr.h" />
     <ClInclude Include="Engine\Globals.h" />
     <ClInclude Include="Engine\Profiler.h" />
     <ClInclude Include="Engine\Random\CellularAutomata.h" />

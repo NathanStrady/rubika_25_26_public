@@ -46,7 +46,6 @@ Entity* CreateEntity()
 int main()
 {
     gData.Init();
-
     sf::RenderWindow window(sf::VideoMode({ 1280, 720 }), "MyEngine - Rubika 2025 2026");
     
 #ifdef _USE_IMGUI
@@ -87,6 +86,19 @@ int main()
     sf::Clock clock;
     clock.restart();
 
+    for (int i = 0; i < 100; ++i)
+    {
+        gData.TaskMgr->RegisterTask([i]()
+            {
+                PROFILER_EVENT_BEGIN(PROFILER_COLOR_DARK_BLUE, "Task %d", i);
+
+                Sleep(100);
+
+                PROFILER_EVENT_END();
+            },
+            TaskMgr::ePhase::Worker);
+    }
+
     while (window.isOpen() && !gData.ExipApp)
     {
         PROFILER_EVENT_BEGIN(PROFILER_COLOR_BLACK, "Frame %llu", gData.FrameCount);
@@ -94,7 +106,7 @@ int main()
             int deltaTimeMS = clock.getElapsedTime().asMilliseconds();
             float fDeltaTimeS = (float)deltaTimeMS / 1000.f;
             sf::Time imGuiTime = clock.restart();
-
+            
             PROFILER_EVENT_BEGIN(PROFILER_COLOR_BLUE, "Event & Input");
             {
                 while (const std::optional event = window.pollEvent())
@@ -115,16 +127,17 @@ int main()
 
             PROFILER_EVENT_BEGIN(PROFILER_COLOR_RED, "Update");
             {
+
 #ifdef _USE_IMGUI
                 ImGui::SFML::Update(window, imGuiTime);
 #endif
-
                 gData.GameMgr->Update(fDeltaTimeS);
             }
             PROFILER_EVENT_END();
 
             PROFILER_EVENT_BEGIN(PROFILER_COLOR_GREEN, "Draw");
             {
+       
                 PROFILER_EVENT_BEGIN(PROFILER_COLOR_BROWN, "Debug Draw");
                 gData.DebugMgr->Draw();
                 PROFILER_EVENT_END();
@@ -145,6 +158,8 @@ int main()
                 PROFILER_EVENT_END();
 
             }
+
+            
             PROFILER_EVENT_END();
         }
         PROFILER_EVENT_END();
