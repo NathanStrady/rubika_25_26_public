@@ -43,6 +43,38 @@ Entity* CreateEntity()
     return e;
 }
 
+void PopulateUpdate()
+{
+    for (int i = 0; i < 10; ++i)
+    {
+        gData.TaskMgr->RegisterTask([i]()
+            {
+                PROFILER_EVENT_BEGIN(PROFILER_COLOR_DARK_BLUE, "Update %d", i);
+
+                Sleep(100);
+
+                PROFILER_EVENT_END();
+            },
+            TaskMgr::ePhase::Update);
+    }
+}
+
+void PopulateDraw()
+{
+    for (int i = 0; i < 20; ++i)
+    {
+        gData.TaskMgr->RegisterTask([i]()
+            {
+                PROFILER_EVENT_BEGIN(PROFILER_COLOR_DARK_BLUE, "Draw %d", i);
+
+                Sleep(50);
+
+                PROFILER_EVENT_END();
+            },
+            TaskMgr::ePhase::Draw);
+    }
+}
+
 int main()
 {
     gData.Init();
@@ -124,6 +156,10 @@ int main()
                 }
             }
             PROFILER_EVENT_END();
+            
+            gData.TaskMgr->StartPhase(TaskMgr::ePhase::Update);
+            PopulateUpdate();  
+            gData.TaskMgr->WaitPhase();
 
             PROFILER_EVENT_BEGIN(PROFILER_COLOR_RED, "Update");
             {
@@ -135,6 +171,10 @@ int main()
             }
             PROFILER_EVENT_END();
 
+            gData.TaskMgr->StartPhase(TaskMgr::ePhase::Draw);
+            PopulateDraw();  
+            gData.TaskMgr->WaitPhase();    
+            
             PROFILER_EVENT_BEGIN(PROFILER_COLOR_GREEN, "Draw");
             {
        

@@ -1,15 +1,24 @@
 #include "TaskMgr.h"
 
+#include <cassert>
+
 #include "Engine/Globals.h"
 #include "Engine/Debug/DebugMgr.h"
 
 void TaskMgr::Init()
 {
-    int i = 0;
+    int i = 0, j = 0;
     workerThreads.reserve(workerCount);
     while (i < workerCount){
-        workerThreads.emplace_back(&TaskMgr::SyncWorkerLoop, this);
+        workerThreads.emplace_back(&TaskMgr::WorkerLoop, this);
         ++i;
+    }
+    
+    syncThreads.reserve(syncCount);
+    while (j < syncCount)
+    {
+        syncThreads.emplace_back(&TaskMgr::SyncLoop, this);
+        ++j;
     }
 }
 
@@ -27,36 +36,55 @@ void TaskMgr::Shut()
 
 void TaskMgr::RegisterTask(std::function<void()> task, ePhase phase)
 {
+    switch (phase)
     {
-        std::unique_lock<std::mutex> queueLock(workerQueueMutex);
-        workerTaskQueue.emplace(task);
+        case ePhase::Worker:
+            {
+                std::unique_lock<std::mutex> queueLock(queueMutex);
+                workerTaskQueue.emplace(task);
+            }
+            ++workerActiveTasks;
+            cv.notify_one();
+            break;
+        case ePhase::Update:
+            {
+                std::unique_lock<std::mutex> queueLock(queueMutex);
+                updateTaskQueue.emplace(task);
+            }
+            ++syncActiveTasks;
+            syncCv.notify_one();
+            break;
+        case ePhase::Draw:
+            {
+                std::unique_lock<std::mutex> queueLock(queueMutex);
+                drawTaskQueue.emplace(task);
+            }
+            ++syncActiveTasks;
+            syncCv.notify_one();
+            break;
+        default: 
+            assert(false);
     }
-    ++workerActiveTasks;
-    cv.notify_one();
-    StartPhase(phase);
 }
 
 void TaskMgr::StartPhase(ePhase phase)
 {
     CurrentPhase = phase;
-    cv.notify_all();
+    syncCv.notify_all();
 }
 
 void TaskMgr::WaitPhase()
 {
-    std::unique_lock<std::mutex> notifySyncWorker(notifyWorkerQueueMutex);
-    cv.wait(notifySyncWorker, [this]()
-    {
-        return gData.ExipApp || workerActiveTasks > 0 || drawActiveTasks > 0 || updateActiveTasks > 0;
-    });
+    std::unique_lock<std::mutex> endTask(queueMutex);
+    endSyncCv.wait(endTask, [this](){ return syncActiveTasks == 0; });
 }
 
 void TaskMgr::WorkerLoop()
 {
     while (true)
     {
-        std::unique_lock<std::mutex> notifySyncWorker(notifyWorkerQueueMutex);
-        cv.wait(notifySyncWorker, [this]()
+        std::unique_lock<std::mutex> notifyWorker(notifyQueueMutex);
+        cv.wait(notifyWorker, [this]()
         {
             return gData.ExipApp || workerActiveTasks > 0;
         });
@@ -68,7 +96,7 @@ void TaskMgr::WorkerLoop()
 
         std::function<void()> task;
         {
-            std::unique_lock<std::mutex> queueLock(workerQueueMutex);
+            std::unique_lock<std::mutex> queueLock(queueMutex);
             if (!workerTaskQueue.empty())
             {
                 task = workerTaskQueue.front();
@@ -80,62 +108,57 @@ void TaskMgr::WorkerLoop()
     }
 }
 
-void TaskMgr::SyncWorkerLoop()
+void TaskMgr::SyncLoop()
 {
     while (true)
     {
+        {
+            std::unique_lock<std::mutex> notifyWorker(notifyQueueMutex);
+            syncCv.wait(notifyWorker, [this]() {
+                return syncActiveTasks > 0 || gData.ExipApp;
+            });
+        }
+
+        if (gData.ExipApp) return;
+
         switch (CurrentPhase)
         {
-        case ePhase::Worker:
-            WorkerThreadUpdate();
-            break;
-
-        case ePhase::Update:
-            UpdateThreadUpdate();
-            break;
-
-        case ePhase::Draw:
-            DrawUpdateThread();
-            break;
-
-        case ePhase::None:
-            break;
-            
-        default:
-            StartPhase(ePhase::Worker);
-            break;
+            case ePhase::Update: 
+                UpdateThreadUpdate(); 
+                break;
+            case ePhase::Draw:   
+                DrawUpdateThread(); 
+                break;
+            default: 
+                break; 
         }
-    }
-}
-
-void TaskMgr::WorkerThreadUpdate()
-{
-    std::function<void()> task;
-    {
-        std::unique_lock<std::mutex> queueLock(workerQueueMutex);
-        if (!workerTaskQueue.empty())
+        
+        if (syncActiveTasks == 0)
         {
-            task = workerTaskQueue.front();
-            workerTaskQueue.pop();
+            endSyncCv.notify_all();
         }
     }
-    --workerActiveTasks;
-    task();
 }
+
+
 
 void TaskMgr::UpdateThreadUpdate()
 {
     std::function<void()> task;
     {
-        std::unique_lock<std::mutex> queueLock(workerQueueMutex);
+        std::unique_lock<std::mutex> queueLock(queueMutex);
         if (!updateTaskQueue.empty())
         {
             task = updateTaskQueue.front();
             updateTaskQueue.pop();
         }
     }
-    --workerActiveTasks;
-    task();
+    if (task)
+    {
+        task();
+        --syncActiveTasks;
+    }
+
 }
 
 void TaskMgr::DrawUpdateThread()
@@ -143,15 +166,19 @@ void TaskMgr::DrawUpdateThread()
     
     std::function<void()> task;
     {
-        std::unique_lock<std::mutex> queueLock(workerQueueMutex);
+        std::unique_lock<std::mutex> queueLock(queueMutex);
         if (!drawTaskQueue.empty())
         {
             task = drawTaskQueue.front();
             drawTaskQueue.pop();
         }
     }
-    --workerActiveTasks;
-    task();
+    
+    if (task)
+    {
+        task();
+        --syncActiveTasks;
+    }
 }
 
 

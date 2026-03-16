@@ -8,6 +8,7 @@ class TaskMgr
 {
 public:
     const int workerCount = 4;
+    const int syncCount = 4;
     
     void Init();
     void Shut();
@@ -25,28 +26,31 @@ public:
     void WaitPhase();
 
     void WorkerLoop();
-    void SyncWorkerLoop();
+    void SyncLoop();
 
-    void WorkerThreadUpdate();
     void UpdateThreadUpdate();
     void DrawUpdateThread();
 
 private:
-    ePhase CurrentPhase;
+    std::atomic<ePhase> CurrentPhase;
 
     std::queue<std::function<void()>> workerTaskQueue;
     std::queue<std::function<void()>> updateTaskQueue;
     std::queue<std::function<void()>> drawTaskQueue;
     
     std::vector<std::thread> workerThreads;
+    std::vector<std::thread> syncThreads;
+    
     std::condition_variable cv;
+    std::condition_variable syncCv;
+    std::condition_variable endSyncCv;
     
     std::atomic<int> workerActiveTasks = 0;
-    std::atomic<int> updateActiveTasks = 0;
-    std::atomic<int> drawActiveTasks = 0;
+    std::atomic<int> syncActiveTasks = 0;
     
-    std::mutex workerQueueMutex;
-    std::mutex notifyWorkerQueueMutex;
+    std::mutex queueMutex;
+    std::mutex notifyQueueMutex;
+    std::mutex notifyEndTask;
 
     
 };
