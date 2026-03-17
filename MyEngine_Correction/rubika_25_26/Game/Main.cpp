@@ -67,7 +67,7 @@ void PopulateDraw()
             {
                 PROFILER_EVENT_BEGIN(PROFILER_COLOR_DARK_BLUE, "Draw %d", i);
 
-                Sleep(50);
+                Sleep(2000);
 
                 PROFILER_EVENT_END();
             },
@@ -118,18 +118,9 @@ int main()
     sf::Clock clock;
     clock.restart();
 
-    for (int i = 0; i < 100; ++i)
-    {
-        gData.TaskMgr->RegisterTask([i]()
-            {
-                PROFILER_EVENT_BEGIN(PROFILER_COLOR_DARK_BLUE, "Task %d", i);
 
-                Sleep(100);
 
-                PROFILER_EVENT_END();
-            },
-            TaskMgr::ePhase::Worker);
-    }
+
     
     while (window.isOpen() && !gData.ExipApp)
     {
@@ -156,14 +147,25 @@ int main()
                 }
             }
             PROFILER_EVENT_END();
-            
 
+            for (int i = 0; i < 100; ++i)
+            {
+                gData.TaskMgr->RegisterTask([i]()
+                    {
+                        PROFILER_EVENT_BEGIN(PROFILER_COLOR_DARK_BLUE, "Task %d", i);
 
+                        Sleep(100);
+
+                        PROFILER_EVENT_END();
+                    },
+                    TaskMgr::ePhase::Worker);
+            }
+            PopulateUpdate();
+            PopulateDraw();
             PROFILER_EVENT_BEGIN(PROFILER_COLOR_RED, "Update");
             {
-      
+     
                 gData.TaskMgr->StartPhase(TaskMgr::ePhase::Update);
-                PopulateUpdate();
 #ifdef _USE_IMGUI
                 ImGui::SFML::Update(window, imGuiTime);
 #endif
@@ -173,15 +175,11 @@ int main()
                 gData.TaskMgr->WaitPhase();
             }
             PROFILER_EVENT_END();
-
- 
-
             
             PROFILER_EVENT_BEGIN(PROFILER_COLOR_GREEN, "Draw");
             {
-       
+     
                 gData.TaskMgr->StartPhase(TaskMgr::ePhase::Draw);
-                PopulateDraw();
                 PROFILER_EVENT_BEGIN(PROFILER_COLOR_BROWN, "Debug Draw");
                 gData.DebugMgr->Draw();
                 PROFILER_EVENT_END();
@@ -201,7 +199,8 @@ int main()
                 window.display();
                 PROFILER_EVENT_END();
                 
-                gData.TaskMgr->WaitPhase();    
+                gData.TaskMgr->WaitPhase();
+                
             }
 
             
@@ -209,6 +208,7 @@ int main()
         }
         PROFILER_EVENT_END();
         ++gData.FrameCount;
+        gData.TaskMgr->StartPhase(TaskMgr::ePhase::None);
     }
 
     gData.ExipApp = true;

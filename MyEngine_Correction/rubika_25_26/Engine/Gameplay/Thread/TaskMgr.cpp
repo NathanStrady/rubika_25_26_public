@@ -1,6 +1,7 @@
 #include "TaskMgr.h"
 
 #include <cassert>
+#include <iostream>
 
 #include "Engine/Globals.h"
 #include "Engine/Debug/DebugMgr.h"
@@ -53,28 +54,26 @@ void TaskMgr::RegisterTask(std::function<void()> task, ePhase phase)
                 workerTaskQueue.emplace(task);
             }
             ++workerActiveTasks;
-            cv.notify_one();
+            cv.notify_one();    
             break;
         case ePhase::Update:
-            assert(CurrentPhase == ePhase::Update && "Registering Update task outside Update phase");
             {
                 std::unique_lock<std::mutex> queueLock(queueMutex);
                 updateTaskQueue.emplace(task);
             }
-            ++syncActiveTasks;
+            ++updateActiveTasks;
             syncCv.notify_one();
             break;
         case ePhase::Draw:
-            assert(CurrentPhase == ePhase::Draw && "Registering Draw task outside Draw phase");
             {
                 std::unique_lock<std::mutex> queueLock(queueMutex);
                 drawTaskQueue.emplace(task);
             }
-            ++syncActiveTasks;
+            ++drawActiveTasks;
             syncCv.notify_one();
             break;
-        default: 
-            assert(false);
+        default:
+            break;
     }
 }
 
@@ -86,19 +85,24 @@ void TaskMgr::StartPhase(ePhase phase)
 
 void TaskMgr::WaitPhase()
 {
-    std::unique_lock<std::mutex> endTask(queueMutex);
-    endSyncCv.wait(endTask, [this](){ return syncActiveTasks == 0; });
+    std::unique_lock<std::mutex> endTask(notifySyncEnd);
+    endSyncCv.wait(endTask, [this]()
+    {
+        return (CurrentPhase == ePhase::Update && updateActiveTasks == 0) || (CurrentPhase == ePhase::Draw && drawActiveTasks == 0);
+    });
 }
 
 void TaskMgr::WorkerLoop()
 {
     while (true)
     {
-        std::unique_lock<std::mutex> notifyWorker(notifyQueueMutex);
-        cv.wait(notifyWorker, [this]()
         {
-            return gData.ExipApp || workerActiveTasks > 0;
-        });
+            std::unique_lock<std::mutex> notifyWorker(notifyWorkerRegister);
+            cv.wait(notifyWorker, [this]()
+            {
+                return gData.ExipApp || workerActiveTasks > 0;
+            });
+        }
 
         if (gData.ExipApp)
         {
@@ -114,8 +118,12 @@ void TaskMgr::WorkerLoop()
                 workerTaskQueue.pop();
             }
         }
-        --workerActiveTasks;
-        task();
+        
+        if (task)
+        {
+            task();
+            --workerActiveTasks;
+        }
     }
 }
 
@@ -124,14 +132,13 @@ void TaskMgr::SyncLoop()
     while (true)
     {
         {
-            std::unique_lock<std::mutex> notifyWorker(notifyQueueMutex);
-            syncCv.wait(notifyWorker, [this]() {
-                return syncActiveTasks > 0 || gData.ExipApp;
+            std::unique_lock<std::mutex> notifySync(notifySyncRegister);
+            syncCv.wait(notifySync, [this]() {
+                return ((updateActiveTasks > 0 && CurrentPhase == ePhase::Update || drawActiveTasks > 0 && CurrentPhase == ePhase::Draw) && CurrentPhase != ePhase::None || CurrentPhase != ePhase::Worker) || gData.ExipApp;
             });
         }
-
         if (gData.ExipApp) return;
-
+        
         std::function<void()> task;
         switch (CurrentPhase)
         {
@@ -162,12 +169,13 @@ void TaskMgr::SyncLoop()
         if (task)
         {
             task();
-            --syncActiveTasks;
             
-            if (syncActiveTasks == 0)
-            {
-                endSyncCv.notify_all();
-            }
+            if (CurrentPhase == ePhase::Draw)
+                --drawActiveTasks;
+            else
+                --updateActiveTasks;
+            
+            endSyncCv.notify_all();
         }
     }
 }

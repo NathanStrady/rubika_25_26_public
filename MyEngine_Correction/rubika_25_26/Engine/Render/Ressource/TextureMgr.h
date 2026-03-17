@@ -64,9 +64,12 @@ public:
 	void Shut();
 
 	bool LoadTexture(const std::filesystem::path& path);
+	void LoadTextureAsync(const std::filesystem::path& path);
 
 	bool LoadTexture(const std::filesystem::path& path, sf::Texture& texture);
+	void LoadTextureAsync(const std::filesystem::path& path, sf::Texture& texture);
 
+	
 	const TextureData& GetTextureData(const std::string& name) const;
 
 	static const sf::Texture& GetEmptyTexture();

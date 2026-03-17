@@ -12,6 +12,8 @@
 #include <filesystem>
 #include <iostream>
 
+#include "Engine/Debug/DebugMgr.h"
+
 TextureMgr::TextureMgr()
 {}
 
@@ -51,7 +53,7 @@ bool TextureMgr::LoadTexture(const std::filesystem::path& path)
 		std::cerr << "Texture metadata file doesn't exist " << metadataPath << std::endl;
 		return false;
 	}
-
+	
 	auto p = Textures.emplace(std::piecewise_construct, 
 				std::forward_as_tuple(path.string()),
 				std::forward_as_tuple());
@@ -77,6 +79,10 @@ bool TextureMgr::LoadTexture(const std::filesystem::path& path)
 	return true;
 }
 
+void TextureMgr::LoadTextureAsync(const std::filesystem::path& path)
+{
+}
+
 bool TextureMgr::LoadTexture(const std::filesystem::path& path, sf::Texture& texture)
 {
 	auto p = Textures.emplace(std::piecewise_construct,
@@ -88,11 +94,15 @@ bool TextureMgr::LoadTexture(const std::filesystem::path& path, sf::Texture& tex
 		std::cerr << "LoadTexture: Internal error. Cannot emplace in map" << '\n';
 		return false;
 	}
-
+	
 	p.first->second.Texture = texture;
 	p.first->second.AddRef();
 
 	return true;
+}
+
+void TextureMgr::LoadTextureAsync(const std::filesystem::path& path, sf::Texture& texture)
+{
 }
 
 const TextureData& TextureMgr::GetTextureData(const std::string& name) const

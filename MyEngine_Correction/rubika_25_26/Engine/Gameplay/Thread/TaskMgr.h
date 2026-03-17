@@ -29,7 +29,7 @@ public:
 
 
 private:
-    std::atomic<ePhase> CurrentPhase;
+    std::atomic<ePhase> CurrentPhase = ePhase::None;
 
     std::queue<std::function<void()>> workerTaskQueue;
     std::queue<std::function<void()>> updateTaskQueue;
@@ -43,11 +43,13 @@ private:
     std::condition_variable endSyncCv;
     
     std::atomic<int> workerActiveTasks = 0;
-    std::atomic<int> syncActiveTasks = 0;
+    std::atomic<int> updateActiveTasks = 0;
+    std::atomic<int> drawActiveTasks = 0;
     
     std::mutex queueMutex;
-    std::mutex notifyQueueMutex;
-    std::mutex notifyEndTask;
+    std::mutex notifyWorkerRegister;
+    std::mutex notifySyncRegister;
+    std::mutex notifySyncEnd;
 
     
 };
