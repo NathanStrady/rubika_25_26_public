@@ -92,7 +92,6 @@ bool TextureMgr::LoadTextureAsync(const std::filesystem::path& path, TextureLoad
 	{
 
 		PROFILER_EVENT_BEGIN(PROFILER_COLOR_DARK_BLUE, "Loading Texture : %s", path.string().c_str());
-		Sleep(30000);
 		sf::Image image;
 		TextureData* data = nullptr;
 		bool success = LoadTexture(path, image, data);
