@@ -11,8 +11,14 @@
 #include <assert.h>
 #include <filesystem>
 #include <iostream>
+#include <SFML/Graphics/Image.hpp>
+#include <utility>
 
+#include "Engine/Profiler.h"
 #include "Engine/Debug/DebugMgr.h"
+
+PendingTexture::PendingTexture(const std::filesystem::path& path, const sf::Image& image, TextureData* data): Path(path), Image(image), Data(data)
+{}
 
 TextureMgr::TextureMgr()
 {}
@@ -38,8 +44,9 @@ void TextureMgr::Shut()
 	gData.DebugMgr->UnregisterDebugableWindow("TextureMgr");
 }
 
-bool TextureMgr::LoadTexture(const std::filesystem::path& path)
+bool TextureMgr::LoadTexture(const std::filesystem::path& path, sf::Image& outImage, TextureData*& outData)
 {
+	sf::Image image;
 	if (!std::filesystem::exists(path.native()))
 	{
 		std::cerr << "Texture file doesn't exist " << path << std::endl;
@@ -54,19 +61,17 @@ bool TextureMgr::LoadTexture(const std::filesystem::path& path)
 		return false;
 	}
 	
-	auto p = Textures.emplace(std::piecewise_construct, 
-				std::forward_as_tuple(path.string()),
-				std::forward_as_tuple());
-
-	if (!p.second)
+	std::pair<std::unordered_map<const std::string, TextureData>::iterator, bool> p;
 	{
-		std::cerr << "LoadTexture: Internal error. Cannot emplace in map" << std::endl;
-		return false;
+		std::unique_lock<std::mutex> textureLock(TexturesMapMutex);
+		p = Textures.emplace(std::piecewise_construct, 
+					std::forward_as_tuple(path.string()),
+					std::forward_as_tuple());
 	}
-	
 	TextureData& textureData = p.first->second;
 	textureData.AddRef();
-	if (!textureData.Texture.loadFromFile(path.string()))
+
+	if (!image.loadFromFile(path.string()))
 	{
 		return false;
 	}
@@ -76,11 +81,45 @@ bool TextureMgr::LoadTexture(const std::filesystem::path& path)
 		return false;
 	}
 
+	outImage = image;
+	outData = &textureData;
 	return true;
 }
 
-void TextureMgr::LoadTextureAsync(const std::filesystem::path& path)
+bool TextureMgr::LoadTextureAsync(const std::filesystem::path& path, TextureLoadedCallback callback)
 {
+	gData.TaskMgr->RegisterTask([path, this, callback]()
+	{
+
+		PROFILER_EVENT_BEGIN(PROFILER_COLOR_DARK_BLUE, "Loading Texture : %s", path.string().c_str());
+		Sleep(30000);
+		sf::Image image;
+		TextureData* data = nullptr;
+		bool success = LoadTexture(path, image, data);
+		
+		PendingTexture p;
+		
+		if (success)
+		{
+			p.Path = path;
+			p.Image = image;
+			p.Data = data;
+		}
+		else
+		{
+			p.Path = "";
+			p.Image = sf::Image();
+			p.Data = nullptr;
+		}
+		
+		p.Callback = callback;
+		{
+			std::unique_lock<std::mutex> queueLock(PendingTexturesMutex);
+			PendingTextures.push(p);
+		}
+		PROFILER_EVENT_END();
+	}, TaskMgr::ePhase::Worker);
+	return true;
 }
 
 bool TextureMgr::LoadTexture(const std::filesystem::path& path, sf::Texture& texture)
@@ -101,12 +140,9 @@ bool TextureMgr::LoadTexture(const std::filesystem::path& path, sf::Texture& tex
 	return true;
 }
 
-void TextureMgr::LoadTextureAsync(const std::filesystem::path& path, sf::Texture& texture)
+TextureData& TextureMgr::GetTextureData(const std::string& name)
 {
-}
-
-const TextureData& TextureMgr::GetTextureData(const std::string& name) const
-{
+	std::unique_lock<std::mutex> TexturesLock(TexturesMapMutex);
 	assert(Textures.find(name) != Textures.end());
 	return Textures.at(name);
 }

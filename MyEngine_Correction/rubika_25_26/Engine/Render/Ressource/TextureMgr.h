@@ -9,6 +9,12 @@
 #include <filesystem>
 #include <string>
 #include <atomic>
+#include <future>
+#include <queue>
+#include <SFML/Graphics/Image.hpp>
+
+struct TextureData;
+using TextureLoadedCallback = std::function<void(const TextureData*)>;
 
 struct AnimationData
 {
@@ -53,30 +59,42 @@ private:
 	mutable std::atomic<int> RefCount;
 };
 
+struct PendingTexture
+{
+	std::filesystem::path Path;
+	sf::Image Image;
+	TextureData* Data;
+	TextureLoadedCallback Callback;
+
+	PendingTexture(): Image(), Data(nullptr) {}
+	PendingTexture(const std::filesystem::path& path, const sf::Image& image, TextureData* data);
+};
+
 class TextureMgr final : public IDebugable
 {
 public:
-
 	TextureMgr();
 	~TextureMgr();
 
 	void Init();
 	void Shut();
+	
+	bool LoadTexture(const std::filesystem::path& path, sf::Image& outImage, TextureData*& outData);
+	bool LoadTextureAsync(const std::filesystem::path& path, TextureLoadedCallback callback);
 
-	bool LoadTexture(const std::filesystem::path& path);
-	void LoadTextureAsync(const std::filesystem::path& path);
 
 	bool LoadTexture(const std::filesystem::path& path, sf::Texture& texture);
-	void LoadTextureAsync(const std::filesystem::path& path, sf::Texture& texture);
-
-	
-	const TextureData& GetTextureData(const std::string& name) const;
+	TextureData& GetTextureData(const std::string& name);
 
 	static const sf::Texture& GetEmptyTexture();
 	static const sf::Texture& GetMissingTexture();
 
 	virtual void DrawDebug() override;
 
+	std::queue<PendingTexture> PendingTextures;
+	std::mutex PendingTexturesMutex;
+	std::mutex TexturesMapMutex;
+	
 private:
 	std::unordered_map<std::string, TextureData> Textures;
 

@@ -8,7 +8,7 @@ class TaskMgr
 {
 public:
     const int workerCount = 4;
-    const int syncCount = 4;
+    const int syncCount = 10;
     
     void Init();
     void Shut();
@@ -46,7 +46,8 @@ private:
     std::atomic<int> updateActiveTasks = 0;
     std::atomic<int> drawActiveTasks = 0;
     
-    std::mutex queueMutex;
+    std::mutex workerQueueMutex;
+    std::mutex syncQueueMutex;
     std::mutex notifyWorkerRegister;
     std::mutex notifySyncRegister;
     std::mutex notifySyncEnd;

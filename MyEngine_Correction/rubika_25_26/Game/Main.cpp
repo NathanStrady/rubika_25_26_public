@@ -51,7 +51,7 @@ void PopulateUpdate()
             {
                 PROFILER_EVENT_BEGIN(PROFILER_COLOR_DARK_BLUE, "Update %d", i);
 
-                Sleep(100);
+                Sleep(5);
 
                 PROFILER_EVENT_END();
             },
@@ -67,7 +67,7 @@ void PopulateDraw()
             {
                 PROFILER_EVENT_BEGIN(PROFILER_COLOR_DARK_BLUE, "Draw %d", i);
 
-                Sleep(2000);
+                Sleep(5);
 
                 PROFILER_EVENT_END();
             },
@@ -87,43 +87,72 @@ int main()
     }
 #endif
 
-    if (!gData.TextureMgr->LoadTexture("../Ressources/IsaacSprite.png"))
+ 
+    gData.TextureMgr->LoadTextureAsync("../Ressources/IsaacSprite.png", [](const TextureData* t)
     {
-        return -1;
-    }
+        if (t)
+        {
+            Entity* entity = CreateEntity();
+            gData.GameMgr->AddEntity(entity);
+        }
+        else
+            std::cout << "Failure" << std::endl;
+    });
+    gData.TextureMgr->LoadTextureAsync("../Ressources/Basement.png",  [](const TextureData* t)
+    {
+        if (t)
+            std::cout << "Success" << std::endl;
+        else
+            std::cout << "Failure" << std::endl;
+    });
+    gData.TextureMgr->LoadTextureAsync("../Ressources/Tear.png",  [](const TextureData* t)
+    {
+        if (t)
+            std::cout << "Success" << std::endl;
+        else
+            std::cout << "Failure" << std::endl;
+    });
+    gData.TextureMgr->LoadTextureAsync("../Ressources/Rocks.png",  [](const TextureData* t)
+    {
+        if (t)
+            std::cout << "Success" << std::endl;
+        else
+            std::cout << "Failure" << std::endl;
+    });
+    gData.TextureMgr->LoadTextureAsync("../Ressources/Doors.png",  [](const TextureData* t)
+    {
+        if (t)
+            std::cout << "Success" << std::endl;
+        else
+            std::cout << "Failure" << std::endl;
+    });
     
-    if (!gData.TextureMgr->LoadTexture("../Ressources/Basement.png"))
-    {
-        return -2;
-    }
-
-    if (!gData.TextureMgr->LoadTexture("../Ressources/Tear.png"))
-    {
-        return -2;
-    }
-
-    if (!gData.TextureMgr->LoadTexture("../Ressources/Rocks.png"))
-    {
-        return -3;
-    }
-
-    if (!gData.TextureMgr->LoadTexture("../Ressources/Doors.png"))
-    {
-        return -4;
-    }
-    
-    Entity* entity = CreateEntity();
-    gData.GameMgr->AddEntity(entity);
     
     sf::Clock clock;
     clock.restart();
-
-
-
-
     
     while (window.isOpen() && !gData.ExipApp)
     {
+        if (!gData.TextureMgr->PendingTextures.empty())
+        {
+            PendingTexture texture;
+            {
+                std::unique_lock<std::mutex> pendingLock(gData.TextureMgr->PendingTexturesMutex);
+                texture = gData.TextureMgr->PendingTextures.front();
+                gData.TextureMgr->PendingTextures.pop();
+            }
+            
+            TextureData* t = texture.Data;
+            bool loaded = t && t->Texture.loadFromImage(texture.Image);
+            gData.TaskMgr->RegisterTask(
+                [callback = texture.Callback, t, loaded]() {
+                    if (callback)
+                        callback(loaded ? t : nullptr);
+                },
+                TaskMgr::ePhase::Worker
+            );
+        }
+
         PROFILER_EVENT_BEGIN(PROFILER_COLOR_BLACK, "Frame %llu", gData.FrameCount);
         {
             int deltaTimeMS = clock.getElapsedTime().asMilliseconds();
@@ -148,20 +177,8 @@ int main()
             }
             PROFILER_EVENT_END();
 
-            for (int i = 0; i < 100; ++i)
-            {
-                gData.TaskMgr->RegisterTask([i]()
-                    {
-                        PROFILER_EVENT_BEGIN(PROFILER_COLOR_DARK_BLUE, "Task %d", i);
-
-                        Sleep(100);
-
-                        PROFILER_EVENT_END();
-                    },
-                    TaskMgr::ePhase::Worker);
-            }
-            PopulateUpdate();
             PopulateDraw();
+            PopulateUpdate();
             PROFILER_EVENT_BEGIN(PROFILER_COLOR_RED, "Update");
             {
      

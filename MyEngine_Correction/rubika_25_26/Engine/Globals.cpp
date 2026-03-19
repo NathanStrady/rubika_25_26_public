@@ -26,11 +26,11 @@ Globals::~Globals()
 void Globals::Init()
 {
 	//GameMgr->Init();
+	TaskMgr->Init();
 	TextureMgr->Init();
 	//DebugMgr->Init();
 	Console->Init();
 	RandomMgr->Init();
-	TaskMgr->Init();
 }
 
 void Globals::Shut()
